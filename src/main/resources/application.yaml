@@ -4,27 +4,39 @@ spring:
     url: jdbc:postgresql://localhost:5432/shop
     username: postgres
     password: 1012
+    hikari:
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
       naming:
-        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyComponentPathImpl
-      properties:
-        hibernate:
-          jdbc:
-            lob:
-              non_contextual_creation: true
-          temp:
-            use_jdbc_metadata_defaults: false
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        temp:
+          use_jdbc_metadata_defaults: false
+        format_sql: true
+
+
   sql:
     init:
       mode: always
+
   jackson:
     serialization:
       write-dates-as-timestamps: false
-  messages:
-    basename: message,error
+    default-property-inclusion: non_null
+
+
+
   servlet:
     multipart:
       max-file-size: 10MB
@@ -34,9 +46,25 @@ server:
   port: 8080
   error:
     include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: false
+
 
 springdoc:
-  api-docs:
-    path: /v3/api-docs
   swagger-ui:
+    enabled: true
     path: /swagger-ui.html
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+
+
+logging:
+  level:
+    uz.zero.demo: DEBUG
+    org.springframework.web: INFO
+    org.springframework.transaction: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+    org.hibernate.orm.jdbc.bind: TRACE

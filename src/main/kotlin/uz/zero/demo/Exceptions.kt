@@ -1,16 +1,15 @@
 package uz.zero.demo
 
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.context.support.ResourceBundleMessageSource
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import java.math.BigDecimal
 import java.util.*
 
 @ControllerAdvice
 class ExceptionHandler(
-    @Qualifier("myMessageSource")
     private val errorMessageSource: ResourceBundleMessageSource,
 
 ) {
@@ -49,10 +48,41 @@ sealed class ShopAppException(message: String? = null) : RuntimeException(messag
     }
 }
 
-class CategoryNotFoundException() : ShopAppException() {
+class CategoryNotFoundException(s: String) : ShopAppException() {
     override fun errorType() = ErrorCode.CATEGORY_NOT_FOUND
 }
 
-class ProductNotFoundException : ShopAppException() {
+class ProductNotFoundException(s: String) : ShopAppException() {
     override fun errorType() = ErrorCode.PRODUCT_NOT_FOUND
+}
+
+class UserNotFoundException(s: String) : ShopAppException() {
+    override fun errorType() = ErrorCode.USER_NOT_FOUND
+}
+
+class InsufficientBalanceException(
+    private val required: String? = null,
+    private val available: BigDecimal? = null
+) : ShopAppException() {
+    override fun errorType() = ErrorCode.INSUFFICIENT_BALANCE
+    override fun getErrorMessageArguments(): Array<Any?> = arrayOf(required, available)
+}
+
+class InsufficientStockException(
+    private val productName: String
+) : ShopAppException() {
+    override fun errorType() = ErrorCode.INSUFFICIENT_STOCK
+    override fun getErrorMessageArguments(): Array<Any?> = arrayOf(productName)
+}
+
+class TransactionNotFoundException(s: String) : ShopAppException() {
+    override fun errorType() = ErrorCode.TRANSACTION_NOT_FOUND
+}
+
+class InvalidAmountException : ShopAppException() {
+    override fun errorType() = ErrorCode.INVALID_AMOUNT
+}
+
+class UnauthorizedAccessException : ShopAppException() {
+    override fun errorType() = ErrorCode.UNAUTHORIZED_ACCESS
 }

@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.jpa.repository.support.JpaEntityInformation
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository
 import org.springframework.data.repository.NoRepositoryBean
@@ -46,10 +47,54 @@ class BaseRepositoryImpl<T : BaseEntity>(
 
 @Repository
 interface CategoryRepository : BaseRepository<Category> {
-
+    @Query("SELECT COALESCE(MAX(c.order), 0) FROM Category c WHERE c.deleted = false")
+    fun findMaxOrder(): Long
 }
 
 @Repository
 interface ProductRepository : BaseRepository<Product> {
 
+}
+
+@Repository
+interface UserRepository : BaseRepository<User> {
+    fun existsByUsernameAndDeletedIsFalse(username: String): Boolean
+    fun findByUsername(username: String): User?
+    fun findByUsernameAndDeletedFalse(username: String): User?
+}
+
+@Repository
+interface UserPaymentTransactionRepository : BaseRepository<UserPaymentTransaction> {
+    @Query("""
+        SELECT p FROM UserPaymentTransaction p 
+        WHERE p.user.id = :userId AND p.deleted = false 
+        ORDER BY p.createdDate DESC
+    """)
+    fun findByUserIdAndDeletedFalseOrderByCreatedDateDesc(
+        userId: Long,
+        pageable: Pageable
+    ): Page<UserPaymentTransaction>
+}
+
+@Repository
+interface TransactionRepository : BaseRepository<Transaction> {
+
+    @Query("""
+        SELECT t FROM Transaction t 
+        WHERE t.user.id = :userId AND t.deleted = false 
+        ORDER BY t.createdDate DESC
+    """)
+    fun findByUserIdAndDeletedFalseOrderByCreatedDateDesc(
+        userId: Long,
+        pageable: Pageable
+    ): Page<Transaction>
+
+    @Query("""
+        SELECT t FROM Transaction t 
+        WHERE t.deleted = false 
+        ORDER BY t.createdDate DESC
+    """)
+    fun findAllByDeletedFalseOrderByCreatedDateDesc(
+        pageable: Pageable
+    ): Page<Transaction>
 }
